@@ -255,7 +255,7 @@ var recipeRoute = router.route('/recipes/:id');
 //GET: Respond with details of specified recipe or 404 error
 recipeRoute.get(function(req, res) {
   var id = req.params.id;
-  Recipe.find({_id:id}, function(err, recipe) {
+  Recipe.findById(id, function(err, recipe) {
     if (err) {
       var result = {};
       result.message = "Mongo failed, error: " + err;
