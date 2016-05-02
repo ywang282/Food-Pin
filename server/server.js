@@ -45,11 +45,12 @@ loginRoute.post(function(req, res) {
 
   var name = req.body.name;
   var password = req.body.password;
+  var email = req.body.email;
 
   // validate user input
-  if (name === undefined || password === undefined){
+  if (name === undefined || password === undefined || email === undefined){
     var result  = {};
-    result.message = "Bad request. User cannot be created without a name or password.";
+    result.message = "Bad request. User cannot be created without a name, password or email.";
     result.data = [];
     res.status(400);
     res.json(result);
@@ -60,6 +61,9 @@ loginRoute.post(function(req, res) {
   var newUser = User({
     name: name,
     password: password,
+    email: email,
+    favorite: [],
+    kitchen: "empty"
   });
 
 
@@ -98,10 +102,13 @@ loginRoute.post(function(req, res) {
   });
 });
 
-var userRoute = router.route('/login/:name');
 
-userRoute.get(function(req, res) {
-  var name = req.params.name;
+loginRoute.get(function(req, res) {
+
+  var query = req.query;
+  var name = query.name;
+  var password = query.password;
+
   User.find({name:name}, function(err, user) {
     if (err) {
       var result = {};
@@ -113,23 +120,57 @@ userRoute.get(function(req, res) {
     }
     if (JSON.stringify(user) === JSON.stringify([])){
       var result = {};
-      result.message = "FAIL, the user is not found";
+      result.message = "You havent signed up yet.";
       result.data = [];
       res.status(404);
       res.json(result);
       return;
     }
     else{
-      var result = {};
-      result.message = "OK";
-      result.data = user;
-      res.status(200);
-      res.json(result);
-      return;
+      if (user[0].password === password){
+        var result = {};
+        result.message = "Successfully logged in";
+        result.data = user;
+        res.status(200);
+        res.json(result);
+        return;
+      }
+      else{
+        var result = {};
+        result.message = "Username does not match password.";
+        result.data = [];
+        res.status(200);
+        res.json(result);
+        return;
+      }
     }
   });
 });
 
+
+var loginAllRoute = router.route('/logins');
+
+loginAllRoute.get(function(req, res) {
+
+  // check if another user of the same name exist in the same database
+  User.find(function(err, user) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+    }
+    
+    var result = {};
+    result.message = "OK, a list of user is returned";
+    result.data = user;
+    res.status(200);
+    res.json(result);
+  });
+});
+
+var userRoute = router.route('/logins/:name');
 
 //DELETE: Delete specified recipe or 404 error
 userRoute.delete(function(req, res) {
