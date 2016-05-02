@@ -5,7 +5,9 @@ var mongoose = require('mongoose');
 var userSchema   = new mongoose.Schema({
 	name: {type: String, required: true},
 	password:{type: String, required: true},
-	favorite: [String]
+	email:{type: String, required: true},
+	favorite: [String],
+	kitchen: String
 });
 
 // Export the Mongoose model
