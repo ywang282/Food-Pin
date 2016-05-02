@@ -170,12 +170,11 @@ loginAllRoute.get(function(req, res) {
   });
 });
 
-var userRoute = router.route('/logins/:name');
+var userRoute = router.route('/login/:id');
 
-//DELETE: Delete specified recipe or 404 error
-userRoute.delete(function(req, res) {
-  var name = req.params.name;
-  User.remove({name:name}, function(err, user) {
+userRoute.get(function(req, res) {
+  var id = req.params.id;
+  User.find({_id:id}, function(err, user) {
     if (err) {
       var result = {};
       result.message = "Mongo failed, error: " + err;
@@ -184,7 +183,6 @@ userRoute.delete(function(req, res) {
       res.json(result);
       return;
     }
-    console.log(user);
     if (JSON.stringify(user) === JSON.stringify([])){
       var result = {};
       result.message = "FAIL, the user is not found";
@@ -195,8 +193,8 @@ userRoute.delete(function(req, res) {
     }
     else{
         var result = {};
-        result.message = "Deleted";
-        result.data = [];
+        result.message = "Found the user successfully";
+        result.data = user;
         res.status(200);
         res.json(result);
     }
