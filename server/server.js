@@ -2,6 +2,7 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var Recipe = require('./models/recipe');
+var Kitchen = require('./models/kitchen');
 var User = require('./models/user');
 var bodyParser = require('body-parser');
 var router = express.Router();
@@ -197,6 +198,121 @@ userRoute.get(function(req, res) {
         result.data = user;
         res.status(200);
         res.json(result);
+    }
+  });
+});
+
+var kitchensRoute = router.route('/kitchens');
+
+kitchensRoute.get(function(req, res) {
+
+  Kitchen.find(function(err, kitchen) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+    }
+    
+    var result = {};
+    result.message = "OK, a list of kitchens is returned";
+    result.data = kitchen;
+    res.status(200);
+    res.json(result);
+  });
+});
+
+var kitchenRoute = router.route('/kitchen/:id');
+
+kitchenRoute.get(function(req, res) {
+  var id = req.params.id;
+  Kitchen.find({_id:id}, function(err, kitchen) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+      return;
+    }
+    if (JSON.stringify(kitchen) === JSON.stringify([])){
+      var result = {};
+      result.message = "FAIL, the kitchen is not found";
+      result.data = [];
+      res.status(404);
+      res.json(result);
+      return;
+    }
+    else{
+        var result = {};
+        result.message = "Found the kitchen successfully";
+        result.data = kitchen;
+        res.status(200);
+        res.json(result);
+    }
+  });
+});
+
+kitchenRoute.put(function(req, res) {
+  var id = req.params.id;
+  var item = req.body.item;
+  var amount = req.body.amount;
+  var unit = req.body.unit;
+
+  Kitchen.findOne({_id:id}, function(err, kitchen) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+      return;
+    }
+    if (kitchen === null){
+      var result = {};
+      result.message = "FAIL, the kitchen is not found";
+      result.data = [];
+      res.status(404);
+      res.json(result);
+      return;
+    }
+    else{
+        var addFlag = true;
+
+        for (var i = 0; i < kitchen.kitchenItem.length; ++i){
+          if (kitchen.kitchenItem[i].item===item){
+            kitchen.kitchenItem[i].amount = amount;
+            kitchen.kitchenItem[i].unit = unit;
+            addFlag = false;
+          }
+        }
+
+        if (addFlag){
+          var newItem = {
+            "item":item,
+            "amount":amount,
+            "unit":unit
+          };
+          kitchen.kitchenItem.push(newItem);
+        }
+        
+        kitchen.save(function(err) {
+          if (err) {
+            var result = {};
+            result.message = "Mongo failed, error: " + err;
+            result.data = [];
+            res.status(500);
+            res.json(result);
+            return;
+          }
+            var result = {};
+            result.message = "updated kitchen";
+            result.data = kitchen;
+            res.status(200);
+            res.json(result);
+            return;
+        });
     }
   });
 });
