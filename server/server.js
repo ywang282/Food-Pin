@@ -33,12 +33,16 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+app.use(bodyParser.json());
+
 //Initialize express session
 app.use(session({ secret: 'recipe treasure trove' }));
 
 //Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
+
+
 
 // All our routes will start with /api
 app.use('/api', router);
@@ -78,6 +82,7 @@ signupRoute.post(function(req, res) {
   var name = req.body.name;
   var password = req.body.password;
   var email = req.body.email;
+  var kitchen = req.body.kitchen;
 
   // validate user input
   if (name === undefined || password === undefined || email === undefined){
@@ -255,6 +260,8 @@ userRoute.put(function(req, res) {
   var kitchen = req.body.kitchen;
   var favorite = req.body.favorite;
 
+  console.log("here " + favorite);
+
   User.findOne({_id:id}, function(err, user) {
     if (err) {
       var result = {};
@@ -321,6 +328,33 @@ kitchensRoute.get(function(req, res) {
     res.status(200);
     res.json(result);
   });
+});
+
+
+kitchensRoute.post(function(req, res) {
+
+  var kitchenItem = req.body.kitchenItem;
+
+  var newKitchen = new Kitchen({kitchenItem:kitchenItem});
+
+  newKitchen.save(function (err) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+      return;
+    }
+    else{
+      var result = {};
+      result.message = "Kitchen Created";
+      result.data = newKitchen;
+      res.status(201);
+      res.json(result);
+    }
+  })
+
 });
 
 var kitchenRoute = router.route('/kitchen/:id');

@@ -34,7 +34,7 @@ module.exports = function(passport) {
 				newUser.password = newUser.generateHash(password);
                 newUser.email = req.body.email;
                 newUser.favorite = [];
-                newUser.kitchen = "empty";
+                newUser.kitchen = req.body.kitchen;
 
 				newUser.save(function(err) {
 					if(err)
