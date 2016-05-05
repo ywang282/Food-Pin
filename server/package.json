@@ -9,6 +9,12 @@
   "dependencies": {
     "body-parser": "^1.12.0",
     "express": "^4.12.2",
-    "mongoose": "*"
+    "mongoose": "*",
+    "bcrypt-nodejs": "*",
+    "passport" : "~0.1.17",         
+    "passport-local" : "~0.1.6",    
+    "passport-facebook" : "~1.0.2",
+    
+    "express-session": "*"
   }
 }

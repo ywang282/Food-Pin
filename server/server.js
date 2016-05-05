@@ -5,9 +5,13 @@ var Recipe = require('./models/recipe');
 var User = require('./models/user');
 var bodyParser = require('body-parser');
 var router = express.Router();
+var passport = require('passport');
+var session = require('express-session');
 
 //replace this with your Mongolab URL
 mongoose.connect('mongodb://ywang282:FPywang282@ds019471.mlab.com:19471/cs498finalproject');
+
+require('./passport-config')(passport);
 
 // Create our Express application
 var app = express();
@@ -28,6 +32,13 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+//Initialize express session
+app.use(session({ secret: 'recipe treasure trove' }));
+
+//Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
+
 // All our routes will start with /api
 app.use('/api', router);
 
@@ -38,11 +49,31 @@ homeRoute.get(function(req, res) {
   res.json({ message: 'Hello World!' });
 });
 
+function isLoggedIn(req, res, next) {
+		if(req.isAuthenticated())
+			return next();
+
+		res.json({
+			error: "User not logged in"
+		});
+}
+
+//Login route
 var loginRoute = router.route('/login');
+loginRoute.post(passport.authenticate('local-login'), function(req, res) {
+    var result = {};
+    result.data = req.user._id;
+    res.status(200);
+    res.json(result);
+    return;
+});
 
-// login: POST, Create a new user. Respond with details of the new user
-loginRoute.post(function(req, res) {
+//User route
 
+//Signup route
+var signupRoute = router.route('/signup');
+// signup: POST, Create a new user. Respond with details of the new user
+signupRoute.post(function(req, res) {
   var name = req.body.name;
   var password = req.body.password;
   var email = req.body.email;
@@ -56,50 +87,34 @@ loginRoute.post(function(req, res) {
     res.json(result);
     return;
   }
-
-  // create a new user
-  var newUser = User({
-    name: name,
-    password: password,
-    email: email,
-    favorite: [],
-    kitchen: "empty"
-  });
-
-
-  // check if another user of the same name exist in the same database
-  User.find({ name: name }, function(err, user) {
-    if (err) {
-      var result = {};
-      result.message = "Mongo failed, error: " + err;
-      result.data = [];
-      res.status(500);
-      res.json(result);
-    }
-    if (JSON.stringify(user) === JSON.stringify([])){
-      newUser.save(function(err) {
+  
+  //use passport authentication
+  passport.authenticate('local-signup', function(err, user, info) {
         if (err) {
-          var result = {};
-          result.message = "Mongo failed, error: " + err;
-          result.data = [];
-          res.status(500);
-          res.json(result);
+          return next(err); // will generate a 500 error
         }
-        var result = {};
-        result.message = "OK, a new user is created";
-        result.data = newUser;
-        res.status(201);
-        res.json(result);
-      });
-    }
-    else{
-      var result  = {};
-      result.message = "This user already exists";
-      result.data = user;
-      res.status(400);
-      res.json(result);
-    }
-  });
+        // Generate a JSON response reflecting authentication status
+        if (! user) {
+          return res.send({ success : false, message : 'authentication failed' });
+        }
+        // ***********************************************************************
+        // "Note that when using a custom callback, it becomes the application's
+        // responsibility to establish a session (by calling req.login()) and send
+        // a response."
+        // Source: http://passportjs.org/docs
+        // ***********************************************************************
+        req.login(user, function(err){
+          if (err) {
+            return next(loginErr);
+          }
+          var result  = {};
+            result.message = "Successfully signed up";
+            result.data = req.user;
+            res.status(200);
+            res.json(result);
+            return;
+        });      
+      })(req, res);
 });
 
 
