@@ -186,7 +186,39 @@ loginAllRoute.get(function(req, res) {
   });
 });
 
-var userRoute = router.route('/login/:id');
+var loginRoute = router.route('/login/:id');
+
+loginRoute.get(function(req, res) {
+  var id = req.params.id;
+  User.find({_id:id}, function(err, user) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+      return;
+    }
+    if (JSON.stringify(user) === JSON.stringify([])){
+      var result = {};
+      result.message = "FAIL, the user is not found";
+      result.data = [];
+      res.status(404);
+      res.json(result);
+      return;
+    }
+    else{
+        var result = {};
+        result.message = "Found the user successfully";
+        result.data = user;
+        res.status(200);
+        res.json(result);
+    }
+  });
+});
+
+
+var userRoute = router.route('/user/:id');
 
 userRoute.get(function(req, res) {
   var id = req.params.id;
@@ -216,6 +248,59 @@ userRoute.get(function(req, res) {
     }
   });
 });
+
+userRoute.put(function(req, res) {
+  var id = req.params.id;
+
+  var kitchen = req.body.kitchen;
+  var favorite = req.body.favorite;
+
+  User.findOne({_id:id}, function(err, user) {
+    if (err) {
+      var result = {};
+      result.message = "Mongo failed, error: " + err;
+      result.data = [];
+      res.status(500);
+      res.json(result);
+      return;
+    }
+    if (JSON.stringify(user) === JSON.stringify([])){
+      var result = {};
+      result.message = "FAIL, the user is not found";
+      result.data = [];
+      res.status(404);
+      res.json(result);
+      return;
+    }
+    else{
+        user.kitchen = kitchen;
+        user.favorite = favorite;
+
+        console.log(user);
+
+        user.save(function(err) {
+          if (err) {
+            var result = {};
+            result.message = "Mongo failed, error: " + err;
+            result.data = [];
+            res.status(500);
+            res.json(result);
+            return;
+          }
+            var result = {};
+            result.message = "updated user";
+            result.data = user;
+            res.status(200);
+            res.json(result);
+            return;
+        });
+    }
+  });
+});
+
+
+
+
 
 var kitchensRoute = router.route('/kitchens');
 
