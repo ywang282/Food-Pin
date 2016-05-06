@@ -510,6 +510,7 @@ recipesRoute.post(function(req, res) {
   var name = req.body.name;
   var ingredients = req.body.ingredients;
   var steps = req.body.steps;
+  var ingredientList = req.body.ingredientList;
   var imageURL = req.body.imageURL === undefined? "NA" : req.body.imageURL;
 
   // validate recipe input
@@ -526,12 +527,12 @@ recipesRoute.post(function(req, res) {
   var newRecipe = Recipe({
     name: name,
     ingredients: ingredients,
+    ingredientList:ingredientList,
     steps: steps,
     timers: [],
     imageURL: imageURL,
     originalURL: ""
   });
-
 
   // check if another recipe of the same name exist in the same database
   Recipe.find({ name: name }, function(err, recipe) {

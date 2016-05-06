@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var recipeSchema   = new mongoose.Schema({
 	name: {type: String, required: true},
 	ingredients: [{}],
+	ingredientList:[String],
 	steps:[String],
 	timers:[Number],
 	imageURL:String,
