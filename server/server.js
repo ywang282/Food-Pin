@@ -412,8 +412,12 @@ kitchenRoute.get(function(req, res) {
 kitchenRoute.put(function(req, res) {
   var id = req.params.id;
   var item = req.body.item;
+  var type = req.body.type;
   var amount = req.body.amount;
   var unit = req.body.unit;
+  var message = req.body.message;
+
+  console.log(item);
 
   Kitchen.findOne({_id:id}, function(err, kitchen) {
     if (err) {
@@ -433,25 +437,30 @@ kitchenRoute.put(function(req, res) {
       return;
     }
     else{
-        var addFlag = true;
 
         for (var i = 0; i < kitchen.kitchenItem.length; ++i){
           if (kitchen.kitchenItem[i].item===item){
             kitchen.kitchenItem[i].amount = amount;
             kitchen.kitchenItem[i].unit = unit;
-            addFlag = false;
+            kitchen.kitchenItem[i].type = type;
+            kitchen.kitchenItem.splice(i,1);
+
           }
         }
 
-        if (addFlag){
+        if (message !== 'd'){
           var newItem = {
             "item":item,
+            "type":type,
             "amount":amount,
             "unit":unit
           };
           kitchen.kitchenItem.push(newItem);
         }
-        
+
+        console.log(kitchen);
+
+                
         kitchen.save(function(err) {
           if (err) {
             var result = {};
@@ -471,6 +480,7 @@ kitchenRoute.put(function(req, res) {
     }
   });
 });
+
 
 //recipes route here
 var recipesRoute = router.route('/recipes');
@@ -499,9 +509,7 @@ recipesRoute.post(function(req, res) {
   var name = req.body.name;
   var ingredients = req.body.ingredients;
   var steps = req.body.steps;
-  var timers = req.body.timers;
   var imageURL = req.body.imageURL === undefined? "NA" : req.body.imageURL;
-  var originalURL =  req.body.originalURL === undefined? "NA" : req.body.originalURL;
 
   // validate recipe input
   if (name.length === 0){
@@ -518,9 +526,9 @@ recipesRoute.post(function(req, res) {
     name: name,
     ingredients: ingredients,
     steps: steps,
-    timers: timers,
+    timers: [],
     imageURL: imageURL,
-    originalURL: originalURL
+    originalURL: ""
   });
 
 
