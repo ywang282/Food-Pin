@@ -65,12 +65,33 @@ function isLoggedIn(req, res, next) {
 
 //Login route
 var loginRoute = router.route('/login');
-loginRoute.post(passport.authenticate('local-login'), function(req, res) {
-    var result = {};
-    result.data = req.user._id;
-    res.status(200);
-    res.json(result);
-    return;
+loginRoute.post(function(req, res, next){
+    passport.authenticate('local-login', function(err, user, info) {
+        if(err){
+            result = {};
+            result.message = err;
+            res.status(500);
+            res.json(result);
+            res.end();
+            return;
+        };
+        
+        if(!user){
+            //wrong password
+            result = {};
+            result.message = "Username and Password do not match";
+            res.status(401);
+            res.json(result);
+            res.end();
+            return;
+        };
+        
+        var result = {};
+        result.data = user._id;
+        res.status(200);
+        res.json(result);
+        res.end();
+    })(req, res, next);
 });
 
 //User route
