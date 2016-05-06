@@ -23,6 +23,7 @@ var port = process.env.PORT || 4000;
 //Allow CORS so that backend and frontend could pe put on different servers
 var allowCrossDomain = function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
   next();
 };
@@ -703,6 +704,30 @@ recipeRoute.delete(function(req, res) {
       });
     }
   });
+});
+
+//recipes route here
+var recipeKitchenRoute = router.route('/kitchenrecipes');
+
+recipeKitchenRoute.get(function(req, res){
+    console.log(req.query['ingredients']);
+    var kitchen_ingredients = req.query['ingredients'];
+    Recipe.find({'ingredientList' : {$not:{$elemMatch:{$nin:kitchen_ingredients}}}}, function(err, recipes){
+        if (err) {
+          var result = {};
+          result.message = "Mongo failed, error: " + err;
+          result.data = [];
+          res.status(500);
+          res.json(result);
+          return;
+        }
+        var result = {};
+        result.message = "Recipes found";
+        result.data = recipes;
+        res.status(200);
+        res.json(result);
+        return;
+    });
 });
 
 // Start the server
